@@ -1,3 +1,4 @@
+
 const express = require("express");
 const Occasion = require("../models/Occasion");
 const auth = require("../middleware/authMiddleware");

@@ -1,3 +1,4 @@
+
 const express = require("express");
 const cors = require("cors");
 const connectDB = require("./config/db");
@@ -18,4 +19,3 @@ app.use("/api/budgetmaker", require("./routes/budgetMakerRoutes"));
 app.listen(5000, () => console.log("Server Running on Port 5000"));
 require("dotenv").config();
 app.use("/api/auth", require("./routes/authRoutes"));
-

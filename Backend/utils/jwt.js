@@ -1,4 +1,4 @@
-// utils/jwt.js
+
 const jwt = require("jsonwebtoken");
 
 exports.generateAccessToken = (user) =>
