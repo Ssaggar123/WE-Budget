@@ -1,4 +1,4 @@
-
+require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
 const connectDB = require("./config/db");
@@ -19,3 +19,7 @@ app.use("/api/budgetmaker", require("./routes/budgetMakerRoutes"));
 app.listen(5000, () => console.log("Server Running on Port 5000"));
 require("dotenv").config();
 app.use("/api/auth", require("./routes/authRoutes"));
+app.use(cors({
+  origin: "http://localhost:5173", // Vite runs here
+  credentials: true
+}));

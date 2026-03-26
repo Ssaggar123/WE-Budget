@@ -10,6 +10,12 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@react-native-community/slider": "^5.1.2",
+    "@react-native-picker/picker": "^2.11.4",
+    "expo": "^55.0.8",
+    "expo-print": "^55.0.9",
+    "expo-sharing": "^55.0.14",
+    "install": "^0.13.0",
     "react": "^19.2.0",
     "react-dom": "^19.2.0"
   },
