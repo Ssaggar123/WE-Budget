@@ -1,24 +1,4 @@
-import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View } from 'react-native';
-
-export default function App() {
-  return (
-    <View style={styles.container}>
-      <Text>Open up App.js to start working on your app!</Text>
-      <StatusBar style="auto" />
-    </View>
-  );
-}
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-});
-// WeBudget Mobile — App.js
+﻿// WeBudget Mobile — App.js
 // Place this file at: WE-Budget/MobileApp/App.js
 //
 // SETUP STEPS:
@@ -45,7 +25,7 @@ import { createStackNavigator } from "@react-navigation/stack";
 // ── CHANGE THIS TO YOUR PC's IP ADDRESS ──────────────────────────
 // Open CMD → type ipconfig → find IPv4 Address
 // Example: http://192.168.1.5:5000/api
-const BASE_URL = "http://192.168.1.100:5000/api";
+const BASE_URL = "http://YOUR_IP:5000/api";
 // ─────────────────────────────────────────────────────────────────
 
 const Stack = createStackNavigator();
@@ -198,7 +178,7 @@ function LoginScreen({ navigation }) {
 
         {/* Logo */}
         <Animated.View style={[s.logoArea, { opacity: fade, transform:[{translateY: slideY}] }]}>
-          <View style={s.logoBox}><Text style={s.logoChar}>₿</Text></View>
+          <View style={s.logoBox}></View>
           <Text style={s.appName}>WeBudget</Text>
           <Text style={s.appTag}>Smart money. Clear goals.</Text>
         </Animated.View>
