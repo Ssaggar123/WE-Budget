@@ -19,6 +19,7 @@ import {
   KeyboardAvoidingView, Platform, StatusBar,
   Animated, Dimensions
 } from "react-native";
+import { View, Image } from 'react-native';
 import { NavigationContainer } from "@react-navigation/native";
 import { createStackNavigator } from "@react-navigation/stack";
 
@@ -178,7 +179,10 @@ function LoginScreen({ navigation }) {
 
         {/* Logo */}
         <Animated.View style={[s.logoArea, { opacity: fade, transform:[{translateY: slideY}] }]}>
-          <View style={s.logoBox}></View>
+          <View style={s.logoBox}><Image 
+        source={require('./assets/logo.png')}  // Local image
+        style={s.logo}
+  /></View>
           <Text style={s.appName}>WeBudget</Text>
           <Text style={s.appTag}>Smart money. Clear goals.</Text>
         </Animated.View>
