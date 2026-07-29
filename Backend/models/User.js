@@ -1,48 +1,27 @@
 const mongoose = require("mongoose");
 
-const sessionSchema = new mongoose.Schema({
-  refreshToken:      { type: String, required: true },
-  deviceFingerprint: String,
-  device:            String,
-  ip:                String,
-  location:          String,
-  lastRotation:      Date
-}, { _id: false });
+const SessionSchema = new mongoose.Schema({
+  refreshToken: { type: String },
+  device:       { type: String },
+  ip:           { type: String },
+  lastRotation: { type: Date },
+});
 
-const userSchema = new mongoose.Schema({
-  name: {
-    type: String,
-    required: true,
-    trim: true
+const UserSchema = new mongoose.Schema(
+  {
+    name:       { type: String, required: true, trim: true, maxlength: 50 },
+    email:      { type: String, required: true, unique: true, lowercase: true, trim: true },
+    password:   { type: String, required: true, minlength: 6, select: false },
+    isVerified: { type: Boolean, default: true },
+    sessions:   [SessionSchema],
   },
-  email: {
-    type:      String,
-    unique:    true,
-    required:  true,
-    lowercase: true,
-    trim:      true
-  },
-  password: {
-    type:   String,
-    select: false
-  },
-  role: {
-    type:    String,
-    enum:    ["user", "admin"],
-    default: "user"
-  },
-  isVerified: {
-    type:    Boolean,
-    default: false
-  },
-  verificationToken: String,
-  monthlyIncome:     Number,
-  riskProfile: {
-    type: String,
-    enum: ["Low", "Medium", "High"]
-  },
-  sessions: [sessionSchema]
+  { timestamps: true }
+);
 
-}, { timestamps: true });
+// Compare password method
+UserSchema.methods.matchPassword = async function (enteredPassword) {
+  const bcrypt = require("bcryptjs");
+  return await bcrypt.compare(enteredPassword, this.password);
+};
 
-module.exports = mongoose.model("User", userSchema);
+module.exports = mongoose.model("User", UserSchema);

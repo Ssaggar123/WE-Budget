@@ -1,26 +1,53 @@
 const express = require("express");
 const router = express.Router();
-const auth = require("../middleware/authMiddleware");
+const { protect } = require("../middleware/authMiddleware");
 const User = require("../models/User");
+const BudgetPlan = require("../models/BudgetPlan");
 const recommendPlans = require("../services/investmentRecommendation");
 
-router.get("/recommend", auth, async (req, res) => {
+// ── GET /api/investments/recommend ──────────────────────────────────
+// Uses the user's active budget plan's investment allocation + a risk profile
+router.get("/recommend", protect, async (req, res) => {
   try {
-    const user = await User.findById(req.user.id);
+    const riskProfile = req.query.riskProfile || "Low"; // Low | Medium | High
 
-    if (!user)
-      return res.status(404).json({ message: "User not found" });
+    const plan = await BudgetPlan.findOne({ user: req.user._id, isActive: true });
 
-    if (!user.monthlyIncome)
-      return res.status(400).json({ message: "Monthly income not set on profile" });
+    if (!plan) {
+      return res.status(404).json({
+        success: false,
+        message: "Create a budget plan first so we know how much you can invest.",
+      });
+    }
 
-    const savings = user.monthlyIncome * 0.2;
+    const monthlyInvestable = plan.investments.investmentAmount || 0;
 
-    const plans = await recommendPlans(savings, user.riskProfile);
+    if (monthlyInvestable <= 0) {
+      return res.status(400).json({
+        success: false,
+        message: "Your budget plan has no investment allocation. Update it in Budget Maker.",
+      });
+    }
 
-    res.json({ savings, recommendedPlans: plans });
+    const result = await recommendPlans(monthlyInvestable, riskProfile);
+
+    res.status(200).json({ success: true, data: result });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+// ── GET /api/investments/all ─────────────────────────────────────────
+// Browse all plans, optionally filtered by category
+router.get("/all", protect, async (req, res) => {
+  try {
+    const { category } = req.query;
+    const filter = category ? { category } : {};
+    const Investment = require("../models/Investment");
+    const plans = await Investment.find(filter).sort({ interestRate: -1 });
+    res.status(200).json({ success: true, data: plans });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
   }
 });
 
