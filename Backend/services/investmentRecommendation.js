@@ -11,16 +11,21 @@ async function recommendPlans(monthlyInvestable, riskProfile = "Low") {
 
   // Rough annual amount available to invest
   const annualInvestable = monthlyInvestable * 12;
-
+      console.log("DEBUG riskProfile:", riskProfile);
+    console.log("DEBUG allowedRisks:", allowedRisks);
+    console.log("DEBUG annualInvestable:", annualInvestable);
   const plans = await Investment.find({
     riskLevel: { $in: allowedRisks },
     minInvestment: { $lte: Math.max(annualInvestable, 500) },
   }).sort({ interestRate: -1 });
-
+ console.log("DEBUG plans found:", plans.length);
+  if (plans.length > 0) {
+    console.log("DEBUG sample plan:", JSON.stringify(plans[0]));
+  }
   // Split into "best fit" (within budget) vs "aspirational" (good rate, needs bigger lump sum)
   const withinBudget = plans.filter((p) => p.minInvestment <= annualInvestable);
   const aspirational = plans.filter((p) => p.minInvestment > annualInvestable).slice(0, 3);
-
+   console.log("DEBUG withinBudget:", withinBudget.length, "aspirational:", aspirational.length);
   return {
     monthlyInvestable,
     annualInvestable,

@@ -1,16 +1,60 @@
 ﻿import React, { useState, useEffect } from "react";
 import { View, ActivityIndicator, StyleSheet, TouchableOpacity, Text } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { NavigationContainer } from "@react-navigation/native";
+import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import AuthScreen from "./app/AuthScreen";
 import BudgetMaker from "./app/budgetMaker";
 import BudgetTracker from "./app/Budgettracker";
+import InvestmentRecommendation from "./app/tabs/InvestmentRecommendation";
+import AllInvestmentPlans from "./app/tabs/AllInvestmentPlans";
 
 const C = { bg: "#0D0F14", card: "#161A23", border: "#2A3045", accent: "#6C63FF", textSub: "#8892A4" };
+
+const Stack = createNativeStackNavigator();
+
+function MainTabs() {
+  const [activeTab, setActiveTab] = useState("tracker");
+
+  return (
+    <View style={{ flex: 1, backgroundColor: C.bg }}>
+      <View style={{ flex: 1 }}>
+        {activeTab === "maker" ? (
+          <BudgetMaker onSaved={() => setActiveTab("tracker")} />
+        ) : activeTab === "invest" ? (
+          <InvestmentRecommendation />
+        ) : (
+          <BudgetTracker />
+        )}
+      </View>
+
+      <View style={styles.tabBar}>
+        <TouchableOpacity style={styles.tabBtn} onPress={() => setActiveTab("tracker")}>
+          <Text style={styles.tabIcon}>📊</Text>
+          <Text style={[styles.tabLabel, activeTab === "tracker" && styles.tabLabelActive]}>
+            Tracker
+          </Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.tabBtn} onPress={() => setActiveTab("maker")}>
+          <Text style={styles.tabIcon}>💼</Text>
+          <Text style={[styles.tabLabel, activeTab === "maker" && styles.tabLabelActive]}>
+            Budget Maker
+          </Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.tabBtn} onPress={() => setActiveTab("invest")}>
+          <Text style={styles.tabIcon}>📈</Text>
+          <Text style={[styles.tabLabel, activeTab === "invest" && styles.tabLabelActive]}>
+            Invest
+          </Text>
+        </TouchableOpacity>
+      </View>
+    </View>
+  );
+}
 
 export default function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [checking, setChecking] = useState(true);
-  const [activeTab, setActiveTab] = useState("tracker"); // "maker" | "tracker"
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -39,37 +83,22 @@ export default function App() {
   }
 
   return (
-    <View style={{ flex: 1, backgroundColor: C.bg }}>
-      <View style={{ flex: 1 }}>
-        {activeTab === "maker" ? (
-          <BudgetMaker onSaved={() => setActiveTab("tracker")} />
-        ) : (
-          <BudgetTracker />
-        )}
-      </View>
-
-      {/* Bottom tab bar */}
-      <View style={styles.tabBar}>
-        <TouchableOpacity
-          style={styles.tabBtn}
-          onPress={() => setActiveTab("tracker")}
-        >
-          <Text style={styles.tabIcon}>📊</Text>
-          <Text style={[styles.tabLabel, activeTab === "tracker" && styles.tabLabelActive]}>
-            Tracker
-          </Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={styles.tabBtn}
-          onPress={() => setActiveTab("maker")}
-        >
-          <Text style={styles.tabIcon}>💼</Text>
-          <Text style={[styles.tabLabel, activeTab === "maker" && styles.tabLabelActive]}>
-            Budget Maker
-          </Text>
-        </TouchableOpacity>
-      </View>
-    </View>
+    <NavigationContainer>
+      <Stack.Navigator screenOptions={{ headerShown: false }}>
+        <Stack.Screen name="MainTabs" component={MainTabs} />
+        <Stack.Screen
+          name="AllInvestmentPlans"
+          component={AllInvestmentPlans}
+          options={{
+            headerShown: true,
+            headerTitle: "All Investment Plans",
+            headerStyle: { backgroundColor: C.card },
+            headerTintColor: "#fff",
+            headerShadowVisible: false,
+          }}
+        />
+      </Stack.Navigator>
+    </NavigationContainer>
   );
 }
 

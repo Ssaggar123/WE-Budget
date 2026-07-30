@@ -1,4 +1,4 @@
-const BASE_URL = "http://192.168.1.102:3000/api";
+const BASE_URL = "http://192.168.1.103:3000/api";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export const scanReceipt = async (base64Image) => {
