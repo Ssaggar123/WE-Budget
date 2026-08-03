@@ -10,6 +10,7 @@ import {
 } from "react-native";
 
 import { getRecommendedInvestments } from "../services/investmentServices";
+import PlanDetailModal from "../../components/PlanDetailModal";
 import { useNavigation } from "@react-navigation/native";
 const C = {
   bg: "#0D0F14",
@@ -38,6 +39,7 @@ export default function InvestmentRecommendation() {
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState("");
   const navigation = useNavigation();
+  const [selectedPlan, setSelectedPlan] = useState(null);
 
   const fetchRecommendations = useCallback(async (profile) => {
   try {
@@ -140,7 +142,7 @@ export default function InvestmentRecommendation() {
           {/* Recommended plans */}
           <Text style={styles.sectionTitle}>Recommended for You</Text>
           {data.recommended?.length ? (
-            data.recommended.map((plan) => <PlanCard key={plan._id} plan={plan} />)
+            data.recommended.map((plan) => <PlanCard key={plan._id} plan={plan} onViewDetails={setSelectedPlan}/>)
           ) : (
             <Text style={styles.emptyText}>No plans match your current budget yet.</Text>
           )}
@@ -153,17 +155,22 @@ export default function InvestmentRecommendation() {
                 Higher minimums — save up to unlock these
               </Text>
               {data.aspirational.map((plan) => (
-                <PlanCard key={plan._id} plan={plan} locked />
+                <PlanCard key={plan._id} plan={plan} locked onViewDetails={setSelectedPlan}/>
               ))}
             </>
           )}
         </>
       ) : null}
+      <PlanDetailModal
+        visible={!!selectedPlan}
+        plan={selectedPlan}
+        onClose={() => setSelectedPlan(null)}
+      />
     </ScrollView>
   );
 }
 
-function PlanCard({ plan, locked }) {
+function PlanCard({ plan, locked , onViewDetails  }) {
   return (
     <View style={[styles.planCard, locked && styles.planCardLocked]}>
       <View style={styles.planHeaderRow}>
@@ -175,6 +182,7 @@ function PlanCard({ plan, locked }) {
             {plan.riskLevel}
           </Text>
         </View>
+        
       </View>
       <Text style={styles.planOrg}>{plan.organization}</Text>
 
@@ -191,6 +199,9 @@ function PlanCard({ plan, locked }) {
           <Text style={styles.lockedTagText}>Needs bigger lump sum</Text>
         </View>
       )}
+       <TouchableOpacity style={styles.detailsBtn} onPress={() => onViewDetails(plan)}>
+        <Text style={styles.detailsBtnText}>View Details →</Text>
+      </TouchableOpacity>
     </View>
   );
 }

@@ -8,6 +8,7 @@ import BudgetMaker from "./app/budgetMaker";
 import BudgetTracker from "./app/Budgettracker";
 import InvestmentRecommendation from "./app/tabs/InvestmentRecommendation";
 import AllInvestmentPlans from "./app/tabs/AllInvestmentPlans";
+import OccasionPlanner from "./app/tabs/OccasionPlanner";
 
 const C = { bg: "#0D0F14", card: "#161A23", border: "#2A3045", accent: "#6C63FF", textSub: "#8892A4" };
 
@@ -23,6 +24,8 @@ function MainTabs() {
           <BudgetMaker onSaved={() => setActiveTab("tracker")} />
         ) : activeTab === "invest" ? (
           <InvestmentRecommendation />
+        ) : activeTab === "occasion" ? (
+          <OccasionPlanner />
         ) : (
           <BudgetTracker />
         )}
@@ -45,6 +48,12 @@ function MainTabs() {
           <Text style={styles.tabIcon}>📈</Text>
           <Text style={[styles.tabLabel, activeTab === "invest" && styles.tabLabelActive]}>
             Invest
+          </Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.tabBtn} onPress={() => setActiveTab("occasion")}>
+          <Text style={styles.tabIcon}>🎉</Text>
+          <Text style={[styles.tabLabel, activeTab === "occasion" && styles.tabLabelActive]}>
+            Occasions
           </Text>
         </TouchableOpacity>
       </View>
@@ -113,7 +122,7 @@ const styles = StyleSheet.create({
     paddingTop: 10,
   },
   tabBtn: { flex: 1, alignItems: "center", gap: 2 },
-  tabIcon: { fontSize: 20 },
-  tabLabel: { fontSize: 11, color: C.textSub, fontWeight: "600" },
+  tabIcon: { fontSize: 18 },
+  tabLabel: { fontSize: 10, color: C.textSub, fontWeight: "600" },
   tabLabelActive: { color: C.accent },
 });

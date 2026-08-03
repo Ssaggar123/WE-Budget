@@ -9,6 +9,7 @@ import {
   RefreshControl,
 } from "react-native";
 import { getCatalogue } from "../services/investmentServices";
+import PlanDetailModal from "../../components/PlanDetailModal";
 
 const C = {
   bg: "#0D0F14",
@@ -34,6 +35,7 @@ export default function AllInvestmentPlans() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState("");
+  const [selectedPlan, setSelectedPlan] = useState(null);
 
   const fetchCatalogue = useCallback(async () => {
     try {
@@ -97,29 +99,39 @@ export default function AllInvestmentPlans() {
             {data.lastUpdated && (
               <Text style={styles.updatedText}>
                 Last updated: {new Date(data.lastUpdated).toLocaleTimeString("en-IN")}
+                
               </Text>
             )}
 
             {activeSection === "assured" && (
-              <AssuredSection plans={data.assuredReturns} />
+              <AssuredSection plans={data.assuredReturns} onViewDetails={setSelectedPlan}/>
+              
             )}
+            
             {activeSection === "mutual" && (
               <MutualFundSection
                 curated={data.mutualFunds.curated}
                 live={data.mutualFunds.live}
+                onViewDetails={setSelectedPlan}
               />
             )}
             {activeSection === "stocks" && (
-              <StockSection stocks={data.stocks.live} stale={data.stocks.stale} />
+              <StockSection stocks={data.stocks.live} stale={data.stocks.stale} onViewDetails={setSelectedPlan} />
             )}
           </>
         ) : null}
-      </ScrollView>
+        
+          </ScrollView>
+              <PlanDetailModal
+          visible={!!selectedPlan}
+          plan={selectedPlan}
+          onClose={() => setSelectedPlan(null)}
+        />
     </View>
   );
 }
 
-function AssuredSection({ plans }) {
+function AssuredSection({ plans, onViewDetails }) {
   if (!plans?.length) return <Text style={styles.emptyText}>No assured-return plans found.</Text>;
   return (
     <>
@@ -133,6 +145,9 @@ function AssuredSection({ plans }) {
             <View style={[styles.badge, { borderColor: C.green }]}>
               <Text style={[styles.badgeText, { color: C.green }]}>{p.riskLevel}</Text>
             </View>
+            <TouchableOpacity style={styles.detailsBtn} onPress={() => onViewDetails(p)}>
+              <Text style={styles.detailsBtnText}>View Details →</Text>
+            </TouchableOpacity>
           </View>
           <Text style={styles.planOrg}>{p.organization}</Text>
           <View style={styles.planStatsRow}>
@@ -147,7 +162,7 @@ function AssuredSection({ plans }) {
   );
 }
 
-function MutualFundSection({ curated, live }) {
+function MutualFundSection({ curated, live, onViewDetails }) {
   return (
     <>
       <Text style={styles.sectionIntro}>
@@ -163,6 +178,11 @@ function MutualFundSection({ curated, live }) {
               <View style={[styles.badge, { borderColor: C.amber }]}>
                 <Text style={[styles.badgeText, { color: C.amber }]}>{f.riskLevel}</Text>
               </View>
+              <TouchableOpacity style={styles.detailsBtn} onPress={() => onViewDetails(f
+                
+              )}>
+                <Text style={styles.detailsBtnText}>View Details →</Text>
+              </TouchableOpacity>
             </View>
             <View style={styles.planStatsRow}>
               <Stat
@@ -204,7 +224,7 @@ function MutualFundSection({ curated, live }) {
   );
 }
 
-function StockSection({ stocks, stale }) {
+function StockSection({ stocks, stale, onViewDetails }) {
   return (
     <>
       <Text style={styles.sectionIntro}>
@@ -237,6 +257,9 @@ function StockSection({ stocks, stale }) {
                   color={isUp ? C.green : C.red}
                 />
               </View>
+              <TouchableOpacity style={styles.detailsBtn} onPress={() => onViewDetails(s)}>
+              <Text style={styles.detailsBtnText}>View Details →</Text>
+            </TouchableOpacity>
             </View>
           );
         })
@@ -329,4 +352,14 @@ const styles = StyleSheet.create({
   statLabel: { color: C.textSub, fontSize: 11 },
   statValue: { color: C.text, fontSize: 14, fontWeight: "700", marginTop: 2 },
   planLiquidity: { color: C.textSub, fontSize: 12, fontStyle: "italic" },
+  detailsBtn: {
+  marginTop: 8,
+  alignSelf: "flex-start",
+  borderWidth: 1,
+  borderColor: C.accent,
+  borderRadius: 8,
+  paddingVertical: 6,
+  paddingHorizontal: 12,
+},
+detailsBtnText: { color: C.accent, fontSize: 12, fontWeight: "700" },
 });

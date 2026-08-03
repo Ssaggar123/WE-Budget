@@ -18,6 +18,7 @@ app.use("/api/budget-maker", require("./routes/budgetMakerRoutes"));
 app.use("/api/expenses",     require("./routes/expenseRoutes"));
 app.use("/api/ocr",          require("./routes/ocrRoutes")); 
 app.use("/api/investments",  require("./routes/investmentRoutes"));
+app.use("/api/occasions", require("./routes/occasionRoutes"));
 
 // ── Comment these out until their controllers are ready ───────────
 // app.use("/api/budget",       require("./routes/budgetRoutes"));
