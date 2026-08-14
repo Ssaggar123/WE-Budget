@@ -36,9 +36,67 @@ const OCCASION_TYPES = [
   { key: "Engagement", icon: "💐" },
   { key: "Family Trip", icon: "🧳" },
   { key: "Official Trip", icon: "💼" },
+  { key: "Picnic", icon: "🧺" },
   { key: "Festival", icon: "🎆" },
   { key: "Other", icon: "📌" },
 ];
+
+// Each occasion type gets its own set of planning questions.
+// type: "text" | "number" | "select"
+const QUESTION_SETS = {
+  "Birthday Party": [
+    { key: "venueType", label: "Venue Type", type: "select", options: ["Home", "Banquet Hall", "Restaurant", "Outdoor"] },
+    { key: "theme", label: "Theme", type: "text", placeholder: "e.g. Superhero, Princess, None" },
+    { key: "cateringStyle", label: "Catering Style", type: "select", options: ["Buffet", "Sit-down", "Snacks Only", "None"] },
+  ],
+  "Family Gathering": [
+    { key: "occasionReason", label: "Reason for Gathering", type: "text", placeholder: "e.g. Reunion, Housewarming" },
+    { key: "venueType", label: "Venue Type", type: "select", options: ["Home", "Hall", "Restaurant", "Outdoor"] },
+    { key: "mealType", label: "Meal Type", type: "select", options: ["Full Meal", "Snacks & Tea", "Potluck"] },
+  ],
+  Wedding: [
+    { key: "functionCount", label: "Number of Functions", type: "number", placeholder: "e.g. 4 (Mehendi, Sangeet, etc.)" },
+    { key: "venueType", label: "Venue Type", type: "select", options: ["Banquet Hall", "Resort", "Home", "Community Hall"] },
+    { key: "cateringStyle", label: "Catering Style", type: "select", options: ["Buffet", "Live Counters", "Sit-down"] },
+    { key: "decorTheme", label: "Decor Theme", type: "text", placeholder: "e.g. Floral, Royal, Minimal" },
+  ],
+  Engagement: [
+    { key: "venueType", label: "Venue Type", type: "select", options: ["Banquet Hall", "Home", "Resort", "Outdoor"] },
+    { key: "cateringStyle", label: "Catering Style", type: "select", options: ["Buffet", "Sit-down", "Snacks Only"] },
+    { key: "attireBudgetIncluded", label: "Attire Included in Budget?", type: "select", options: ["Yes", "No"] },
+  ],
+  "Family Trip": [
+    { key: "destination", label: "Destination", type: "text", placeholder: "e.g. Manali, Goa" },
+    { key: "duration", label: "Duration (days)", type: "number", placeholder: "e.g. 5" },
+    { key: "travelMode", label: "Mode of Travel", type: "select", options: ["Flight", "Train", "Road Trip", "Mixed"] },
+    { key: "accommodation", label: "Accommodation Type", type: "select", options: ["Hotel", "Resort", "Homestay", "Camping"] },
+  ],
+  "Official Trip": [
+    { key: "destination", label: "Destination", type: "text", placeholder: "e.g. Bangalore" },
+    { key: "duration", label: "Duration (days)", type: "number", placeholder: "e.g. 3" },
+    { key: "travelMode", label: "Mode of Travel", type: "select", options: ["Flight", "Train", "Road", "Mixed"] },
+    { key: "purpose", label: "Purpose", type: "text", placeholder: "e.g. Client meeting, Conference" },
+  ],
+  Picnic: [
+    { key: "destination", label: "Destination", type: "text", placeholder: "e.g. Nearby park, Lakeside" },
+    { key: "tripType", label: "Trip Type", type: "select", options: ["Day Trip", "Overnight"] },
+    { key: "travelMode", label: "Mode of Travel", type: "select", options: ["Car", "Bus", "Bike", "Walking"] },
+  ],
+  Festival: [
+    { key: "festivalName", label: "Festival Name", type: "text", placeholder: "e.g. Diwali, Eid, Christmas" },
+    { key: "celebrationType", label: "Celebration Type", type: "select", options: ["Home", "Community", "Both"] },
+    { key: "ritualsIncluded", label: "Puja / Rituals Included?", type: "select", options: ["Yes", "No"] },
+  ],
+  Other: [],
+};
+// Trips/picnics are about travelers, not invitees — swap the label accordingly.
+const GUEST_LABEL_OVERRIDES = {
+  "Family Trip": "Member Count",
+  "Official Trip": "Member Count",
+  Picnic: "Member Count",
+};
+
+const guestFieldLabel = (type) => GUEST_LABEL_OVERRIDES[type] || "Guest Count";
 
 const iconFor = (type) => OCCASION_TYPES.find((t) => t.key === type)?.icon || "📌";
 
@@ -167,10 +225,21 @@ export default function OccasionPlanner() {
                 📅 {new Date(o.date).toLocaleDateString("en-IN", { day: "numeric", month: "long", year: "numeric" })}
               </Text>
             )}
-
+            {o.details && Object.keys(o.details).length > 0 && (
+              <View style={styles.detailsPreview}>
+                {Object.entries(o.details)
+                  .filter(([, v]) => v)
+                  .slice(0, 2)
+                  .map(([key, value]) => (
+                    <Text key={key} style={styles.detailsPreviewText}>
+                      {key.replace(/([A-Z])/g, " $1").replace(/^./, (c) => c.toUpperCase())}: {value}
+                    </Text>
+                  ))}
+              </View>
+            )}
             <View style={styles.cardStatsRow}>
               <Stat label="Total Budget" value={`₹${(o.totalBudget || 0).toLocaleString("en-IN")}`} highlight />
-              <Stat label="Guests" value={o.guestCount || 0} />
+              <Stat label={guestFieldLabel(o.occasionType)} value={o.guestCount || 0} />
               <Stat
                 label="Per Head"
                 value={`₹${Math.round(o.perHeadCost || 0).toLocaleString("en-IN")}`}
@@ -207,11 +276,16 @@ function OccasionForm({ occasion, onSaved, onCancel }) {
     occasion?.categories?.length ? occasion.categories : [{ name: "", amount: "" }]
   );
   const [notes, setNotes] = useState(occasion?.notes || "");
+  const [details, setDetails] = useState(occasion?.details || {});
   const [saving, setSaving] = useState(false);
 
   const totalBudget = categories.reduce((sum, c) => sum + (parseFloat(c.amount) || 0), 0);
   const guests = parseInt(guestCount) || 0;
   const perHead = guests > 0 ? totalBudget / guests : 0;
+
+  const updateDetail = (key, value) => {
+    setDetails((prev) => ({ ...prev, [key]: value }));
+  };
 
   const updateCategory = (index, field, value) => {
     const updated = [...categories];
@@ -242,6 +316,7 @@ function OccasionForm({ occasion, onSaved, onCancel }) {
       guestCount: guests,
       categories: validCategories,
       notes: notes.trim(),
+      details,
     };
 
     setSaving(true);
@@ -283,7 +358,10 @@ function OccasionForm({ occasion, onSaved, onCancel }) {
           <TouchableOpacity
             key={t.key}
             style={[styles.typeChip, occasionType === t.key && styles.typeChipActive]}
-            onPress={() => setOccasionType(t.key)}
+            onPress={() => {
+              setOccasionType(t.key);
+              setDetails({}); // clear old answers when switching type
+            }}
           >
             <Text style={styles.typeChipIcon}>{t.icon}</Text>
             <Text
@@ -313,6 +391,59 @@ function OccasionForm({ occasion, onSaved, onCancel }) {
         value={guestCount}
         onChangeText={setGuestCount}
       />
+
+      {QUESTION_SETS[occasionType]?.length > 0 && (
+        <>
+          <Text style={styles.label}>{occasionType} Details</Text>
+          <TextInput
+            style={styles.input}
+            placeholder={
+              GUEST_LABEL_OVERRIDES[occasionType] ? "e.g. 4" : "e.g. 50"
+            }
+            placeholderTextColor={C.textSub}
+            keyboardType="numeric"
+            value={guestCount}
+            onChangeText={setGuestCount}
+          />
+          {QUESTION_SETS[occasionType].map((q) => (
+            <View key={q.key} style={{ marginBottom: 12 }}>
+              <Text style={styles.questionLabel}>{q.label}</Text>
+              {q.type === "select" ? (
+                <View style={styles.optionRow}>
+                  {q.options.map((opt) => (
+                    <TouchableOpacity
+                      key={opt}
+                      style={[
+                        styles.optionChip,
+                        details[q.key] === opt && styles.optionChipActive,
+                      ]}
+                      onPress={() => updateDetail(q.key, opt)}
+                    >
+                      <Text
+                        style={[
+                          styles.optionChipText,
+                          details[q.key] === opt && styles.optionChipTextActive,
+                        ]}
+                      >
+                        {opt}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              ) : (
+                <TextInput
+                  style={styles.input}
+                  placeholder={q.placeholder || ""}
+                  placeholderTextColor={C.textSub}
+                  keyboardType={q.type === "number" ? "numeric" : "default"}
+                  value={details[q.key]?.toString() || ""}
+                  onChangeText={(v) => updateDetail(q.key, v)}
+                />
+              )}
+            </View>
+          ))}
+        </>
+      )}
 
       <Text style={styles.label}>Budget Categories</Text>
       {categories.map((c, i) => (
@@ -348,7 +479,9 @@ function OccasionForm({ occasion, onSaved, onCancel }) {
             <Text style={styles.summaryValue}>₹{totalBudget.toLocaleString("en-IN")}</Text>
           </View>
           <View>
-            <Text style={styles.summaryLabel}>Per Head</Text>
+            <Text style={styles.summaryLabel}>
+              {GUEST_LABEL_OVERRIDES[occasionType] ? "Per Member" : "Per Head"}
+            </Text>
             <Text style={styles.summaryValue}>
               ₹{guests > 0 ? Math.round(perHead).toLocaleString("en-IN") : "—"}
             </Text>
@@ -542,4 +675,18 @@ const styles = StyleSheet.create({
     marginTop: 24,
   },
   saveBtnText: { color: "#fff", fontSize: 15, fontWeight: "700" },
+  questionLabel: { color: C.textSub, fontSize: 12, marginBottom: 6, fontWeight: "600" },
+  optionRow: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
+  optionChip: {
+    borderWidth: 1,
+    borderColor: C.border,
+    borderRadius: 20,
+    paddingVertical: 7,
+    paddingHorizontal: 12,
+  },
+  optionChipActive: { backgroundColor: C.accent, borderColor: C.accent },
+  optionChipText: { color: C.textSub, fontSize: 12, fontWeight: "600" },
+  optionChipTextActive: { color: "#fff" },
+  detailsPreview: { marginBottom: 10 },
+  detailsPreviewText: { color: C.textSub, fontSize: 11, marginTop: 2 },
 });

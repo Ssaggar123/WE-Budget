@@ -27,7 +27,7 @@ router.get("/:id", protect, async (req, res) => {
 // POST /api/occasions — create
 router.post("/", protect, async (req, res) => {
   try {
-    const { title, occasionType, date, guestCount, categories, notes } = req.body;
+    const { title, occasionType, date, guestCount, categories, notes, details } = req.body;
     if (!title || !occasionType) {
       return res.status(400).json({ success: false, message: "Title and occasion type are required" });
     }
@@ -39,6 +39,7 @@ router.post("/", protect, async (req, res) => {
       guestCount: guestCount || 0,
       categories: categories || [],
       notes,
+      details: details || {},
     });
     res.status(201).json({ success: true, data: occasion });
   } catch (err) {
