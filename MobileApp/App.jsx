@@ -1,8 +1,9 @@
-﻿import React, { useState, useEffect } from "react";
+﻿import React from "react";
 import { View, ActivityIndicator, StyleSheet, TouchableOpacity, Text } from "react-native";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
+import { AuthProvider, useAuth } from "./app/context/AuthContext";
+import AppHeader from "./components/AppHeader";
 import AuthScreen from "./app/AuthScreen";
 import BudgetMaker from "./app/budgetMaker";
 import BudgetTracker from "./app/Budgettracker";
@@ -15,10 +16,12 @@ const C = { bg: "#0D0F14", card: "#161A23", border: "#2A3045", accent: "#6C63FF"
 const Stack = createNativeStackNavigator();
 
 function MainTabs() {
-  const [activeTab, setActiveTab] = useState("tracker");
+  const [activeTab, setActiveTab] = React.useState("tracker");
 
   return (
     <View style={{ flex: 1, backgroundColor: C.bg }}>
+      <AppHeader />
+
       <View style={{ flex: 1 }}>
         {activeTab === "maker" ? (
           <BudgetMaker onSaved={() => setActiveTab("tracker")} />
@@ -61,23 +64,8 @@ function MainTabs() {
   );
 }
 
-export default function App() {
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [checking, setChecking] = useState(true);
-
-  useEffect(() => {
-    const checkAuth = async () => {
-      try {
-        const token = await AsyncStorage.getItem("token");
-        setIsLoggedIn(!!token);
-      } catch {
-        setIsLoggedIn(false);
-      } finally {
-        setChecking(false);
-      }
-    };
-    checkAuth();
-  }, []);
+function RootNavigator() {
+  const { isLoggedIn, checking, refreshAuth } = useAuth();
 
   if (checking) {
     return (
@@ -88,7 +76,7 @@ export default function App() {
   }
 
   if (!isLoggedIn) {
-    return <AuthScreen onAuthSuccess={() => setIsLoggedIn(true)} />;
+    return <AuthScreen onAuthSuccess={refreshAuth} />;
   }
 
   return (
@@ -108,6 +96,14 @@ export default function App() {
         />
       </Stack.Navigator>
     </NavigationContainer>
+  );
+}
+
+export default function App() {
+  return (
+    <AuthProvider>
+      <RootNavigator />
+    </AuthProvider>
   );
 }
 

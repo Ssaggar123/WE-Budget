@@ -71,23 +71,30 @@ export default function AuthScreen({ onAuthSuccess }) {
   };
 
   const handleSubmit = async () => {
-    setError(null);
-    if (!validate()) return;
-    setLoading(true);
-    try {
-      if (mode === "login") await loginUser(email.trim(), password);
-      else await registerUser(name.trim(), email.trim(), password);
-      const savedToken = await AsyncStorage.getItem("token");
+  setError(null);
+  if (!validate()) return;
+  setLoading(true);
+  try {
+    const authData =
+      mode === "login"
+        ? await loginUser(email.trim(), password)
+        : await registerUser(name.trim(), email.trim(), password);
+
+    const savedToken = await AsyncStorage.getItem("token");
     console.log("TOKEN RIGHT AFTER AUTH:", savedToken);
 
-      onAuthSuccess();
-    } catch (err) {
-      setError(err.message || "Something went wrong. Please try again.");
-    } finally {
-      setLoading(false);
-    }
-  };
+    // Resolve username from whatever shape the API returns, with safe fallbacks
+    const resolvedUsername =
+      authData?.user?.username || authData?.username || name.trim() || email.trim();
+    await AsyncStorage.setItem("username", resolvedUsername);
 
+    onAuthSuccess();
+  } catch (err) {
+    setError(err.message || "Something went wrong. Please try again.");
+  } finally {
+    setLoading(false);
+  }
+};
   return (
     <View style={styles.root}>
       <StatusBar barStyle="light-content" backgroundColor={C.bg} />
