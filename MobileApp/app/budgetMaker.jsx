@@ -404,9 +404,11 @@ export default function BudgetMaker({ onSaved }) {
         miscBudget: form.miscBudget,
       });
       setSaveSuccess(true);
-      Alert.alert("Saved!", "Your budget plan has been saved successfully."[
-  { text: "View Tracker", onPress: () => onSaved && onSaved() }
-]);
+     Alert.alert(
+  "Saved!",
+  "Your budget plan has been saved successfully.",
+  [{ text: "View Tracker", onPress: () => onSaved && onSaved() }]
+);
     } catch (err) {
       setSaveError(err.message || "Failed to save. Please try again.");
       Alert.alert("Error", err.message || "Failed to save budget plan.");
@@ -868,41 +870,72 @@ export default function BudgetMaker({ onSaved }) {
       </ScrollView>
 
       {/* Form content */}
-      <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
-        style={{ flex: 1 }}
-      >
+            {/* Form content */}
+      <KeyboardAvoidingView behavior="padding" style={{ flex: 1 }}>
         <ScrollView
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
         >
           {renderStep()}
-
-          {/* Navigation buttons */}
-          <View style={styles.navRow}>
-            {step > 0 && (
-              <TouchableOpacity
-                style={styles.navBack}
-                onPress={prev}
-                activeOpacity={0.8}
-              >
-                <Text style={styles.navBackText}>← Back</Text>
-              </TouchableOpacity>
-            )}
-            {step < STEPS.length - 1 && (
-              <TouchableOpacity
-                style={[styles.navNext, step === 0 && { flex: 1 }]}
-                onPress={next}
-                activeOpacity={0.85}
-              >
-                <Text style={styles.navNextText}>
-                  {step === STEPS.length - 2 ? "See Summary →" : "Next →"}
-                </Text>
-              </TouchableOpacity>
-            )}
-          </View>
         </ScrollView>
+
+        {/* Fixed footer — always visible above the keyboard */}
+        <View style={styles.footer}>
+          {step > 0 && (
+            <TouchableOpacity
+              style={styles.navBack}
+              onPress={prev}
+              activeOpacity={0.8}
+            >
+              <Text style={styles.navBackText}>← Back</Text>
+            </TouchableOpacity>
+          )}
+          {step < STEPS.length - 1 && (
+            <TouchableOpacity
+              style={[styles.navNext, step === 0 && { flex: 1 }]}
+              onPress={next}
+              activeOpacity={0.85}
+            >
+              <Text style={styles.navNextText}>
+                {step === STEPS.length - 2 ? "See Summary →" : "Next →"}
+              </Text>
+            </TouchableOpacity>
+          )}
+        </View>
+            {/* Form content */}
+      <KeyboardAvoidingView behavior="padding" style={{ flex: 1 }}>
+        <ScrollView
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+        >
+          {renderStep()}
+        </ScrollView>
+
+        {/* Fixed footer — always visible above the keyboard */}
+        <View style={styles.footer}>
+          {step > 0 && (
+            <TouchableOpacity
+              style={styles.navBack}
+              onPress={prev}
+              activeOpacity={0.8}
+            >
+              <Text style={styles.navBackText}>← Back</Text>
+            </TouchableOpacity>
+          )}
+          {step < STEPS.length - 1 && (
+            <TouchableOpacity
+              style={[styles.navNext, step === 0 && { flex: 1 }]}
+              onPress={next}
+              activeOpacity={0.85}
+            >
+              <Text style={styles.navNextText}>
+                {step === STEPS.length - 2 ? "See Summary →" : "Next →"}
+              </Text>
+            </TouchableOpacity>
+          )}
+        </View>
       </KeyboardAvoidingView>
     </View>
   );
@@ -970,7 +1003,17 @@ const styles = StyleSheet.create({
   pillTextDone: { color: C.green },
 
   // Scroll
-  scrollContent: { padding: 20, paddingBottom: 60 },
+  scrollContent: { padding: 20, paddingBottom: 24},
+   footer: {
+    flexDirection: "row",
+    gap: 12,
+    paddingHorizontal: 20,
+    paddingTop: 12,
+    paddingBottom: Platform.OS === "ios" ? 28 : 16,
+    backgroundColor: C.bg,
+    borderTopWidth: 1,
+    borderTopColor: C.border,
+  },
 
   // Step card
   stepCard: { marginBottom: 8 },

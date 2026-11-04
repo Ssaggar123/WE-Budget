@@ -2,7 +2,7 @@
 import {
   View, Text, TextInput, TouchableOpacity, StyleSheet,
   Animated, KeyboardAvoidingView, Platform, ScrollView,
-  StatusBar, ActivityIndicator,
+  StatusBar, ActivityIndicator,Alert
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { loginUser, registerUser } from "./services/authService";
@@ -75,20 +75,24 @@ export default function AuthScreen({ onAuthSuccess }) {
   if (!validate()) return;
   setLoading(true);
   try {
-    const authData =
-      mode === "login"
-        ? await loginUser(email.trim(), password)
-        : await registerUser(name.trim(), email.trim(), password);
-
-    const savedToken = await AsyncStorage.getItem("token");
-    console.log("TOKEN RIGHT AFTER AUTH:", savedToken);
-
-    // Resolve username from whatever shape the API returns, with safe fallbacks
-    const resolvedUsername =
-      authData?.user?.username || authData?.username || name.trim() || email.trim();
-    await AsyncStorage.setItem("username", resolvedUsername);
-
-    onAuthSuccess();
+    if (mode === "login") {
+      const authData = await loginUser(email.trim(), password);
+      const resolvedUsername =
+        authData?.user?.username || authData?.username || email.trim();
+      await AsyncStorage.setItem("username", resolvedUsername);
+      onAuthSuccess();
+    } else {
+      // Registration succeeded — don't auto-login.
+      // Clear any token the register endpoint may have stored, and drop
+      // the user back to the login form instead of the app.
+      await registerUser(name.trim(), email.trim(), password);
+      await AsyncStorage.removeItem("token");
+      await AsyncStorage.removeItem("username");
+      setMode("login");
+      setPassword("");
+      setError(null);
+      Alert.alert("Account created", "Please log in with your new account.");
+    }
   } catch (err) {
     setError(err.message || "Something went wrong. Please try again.");
   } finally {

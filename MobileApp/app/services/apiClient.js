@@ -1,7 +1,7 @@
 
 // apiClient.js
 
-const BASE_URL = "http://192.168.1.103:3000/api";
+const BASE_URL = "http://192.168.1.100:3000/api";
 
 // Generic fetch wrapper
 async function apiFetch(url, options = {}) {

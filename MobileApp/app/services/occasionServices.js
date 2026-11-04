@@ -1,6 +1,6 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
-const BASE_URL = "http://192.168.1.103:3000/api"; // keep this in sync with your other service files
+const BASE_URL = "http://192.168.1.100:3000/api"; // keep this in sync with your other service files
 
 const apiCall = async (method, endpoint, body) => {
   const token = await AsyncStorage.getItem("token");
